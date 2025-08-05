@@ -1,319 +1,172 @@
--- Carrega Rayfield UI
-
+-- Carregando Rayfield UI
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
-
-
--- Serviços
-
 local Players = game:GetService("Players")
-
 local RunService = game:GetService("RunService")
-
 local Camera = workspace.CurrentCamera
-
 local LocalPlayer = Players.LocalPlayer
 
-
-
--- Tabelas para armazenar elementos
-
-local PlayerBoxes = {}
-
-local PlayerTracers = {}
-
-local PlayerChams = {}
-
-
-
--- Funções de criação
-
-local function CreateChams(target)
-
-    if not target.Character then return end
-
-    local highlight = Instance.new("Highlight")
-
-    highlight.Adornee = target.Character
-
-    highlight.Parent = target.Character
-
-    highlight.FillColor = Color3.fromRGB(255, 0, 0)
-
-    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-
-    highlight.FillTransparency = 0.5
-
-    highlight.OutlineTransparency = 0
-
-    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-
-    return highlight
-
-end
-
-
-
-local function CreateBox()
-
-    local box = {
-
-        TopLeft = Drawing.new("Line"),
-
-        TopRight = Drawing.new("Line"),
-
-        BottomLeft = Drawing.new("Line"),
-
-        BottomRight = Drawing.new("Line"),
-
+-- Tabela principal do ESP
+local ESP = {
+    Enabled = false,
+    TextEnabled = true,
+    SkeletonEnabled = true,
+    SkeletonMaxDistance = 1000,
+    Drawings = {
+        Box = {},
+        Text = {},
+        Skeleton = {}
     }
-
-
-
-    for _, line in pairs(box) do
-
-        line.Color = Color3.fromRGB(255, 0, 0)
-
-        line.Thickness = 2
-
-        line.Transparency = 1
-
-        line.Visible = false
-
-    end
-
-
-
-    return box
-
-end
-
-
-
-local function UpdateBox(box, position, size)
-
-    local x, y = position.X, position.Y
-
-    local w, h = size.X, size.Y
-
-
-
-    box.TopLeft.From = Vector2.new(x - w / 2, y - h / 2)
-
-    box.TopLeft.To = Vector2.new(x + w / 2, y - h / 2)
-
-
-
-    box.TopRight.From = Vector2.new(x + w / 2, y - h / 2)
-
-    box.TopRight.To = Vector2.new(x + w / 2, y + h / 2)
-
-
-
-    box.BottomLeft.From = Vector2.new(x - w / 2, y - h / 2)
-
-    box.BottomLeft.To = Vector2.new(x - w / 2, y + h / 2)
-
-
-
-    box.BottomRight.From = Vector2.new(x - w / 2, y + h / 2)
-
-    box.BottomRight.To = Vector2.new(x + w / 2, y + h / 2)
-
-
-
-    for _, line in pairs(box) do
-
-        line.Visible = true
-
-    end
-
-end
-
-
-
-local function CreateTracer()
-
-    local tracer = Drawing.new("Line")
-
-    tracer.Color = Color3.fromRGB(255, 255, 255)
-
-    tracer.Thickness = 1.5
-
-    tracer.Transparency = 1
-
-    tracer.Visible = false
-
-    return tracer
-
-end
-
-
-
-local function UpdateTracer(tracer, targetPos, originPos)
-
-    tracer.From = originPos
-
-    tracer.To = targetPos
-
-    tracer.Visible = true
-
-end
-
-
-
--- Configurações
-
-local ESPSettings = {
-
-    Chams = false,
-
-    Box = false,
-
-    Tracer = false,
-
 }
 
-
-
--- UI
-
-local Window = Rayfield:CreateWindow({Name = "ESP Visuals - Rayfield", ConfigurationSaving = {Enabled = false}})
-
-local Tab = Window:CreateTab("ESP", 4483362458)
-
-
-
-Tab:CreateToggle({
-
-    Name = "Chams",
-
-    CurrentValue = false,
-
-    Callback = function(Value)
-
-        ESPSettings.Chams = Value
-
-    end,
-
-})
-
-
-
-Tab:CreateToggle({
-
-    Name = "Box ESP",
-
-    CurrentValue = false,
-
-    Callback = function(Value)
-
-        ESPSettings.Box = Value
-
-    end,
-
-})
-
-
-
-Tab:CreateToggle({
-
-    Name = "Tracer ESP",
-
-    CurrentValue = false,
-
-    Callback = function(Value)
-
-        ESPSettings.Tracer = Value
-
-    end,
-
-})
-
-
-
--- Atualização contínua
-
-RunService.RenderStepped:Connect(function()
-
-    for _, player in pairs(Players:GetPlayers()) do
-
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-
-            local root = player.Character.HumanoidRootPart
-
-            local pos, onScreen = Camera:WorldToViewportPoint(root.Position)
-
-
-
-            -- Chams
-
-            if ESPSettings.Chams and not PlayerChams[player] then
-
-                PlayerChams[player] = CreateChams(player)
-
-            elseif not ESPSettings.Chams and PlayerChams[player] then
-
-                PlayerChams[player]:Destroy()
-
-                PlayerChams[player] = nil
-
-            end
-
-
-
-            -- Box
-
-            if ESPSettings.Box then
-
-                if not PlayerBoxes[player] then
-
-                    PlayerBoxes[player] = CreateBox()
-
-                end
-
-                if onScreen then
-
-                    UpdateBox(PlayerBoxes[player], Vector2.new(pos.X, pos.Y), Vector2.new(60, 100))
-
-                end
-
-            elseif PlayerBoxes[player] then
-
-                for _, line in pairs(PlayerBoxes[player]) do
-
-                    line.Visible = false
-
-                end
-
-            end
-
-
-
-            -- Tracer
-
-            if ESPSettings.Tracer then
-
-                if not PlayerTracers[player] then
-
-                    PlayerTracers[player] = CreateTracer()
-
-                end
-
-                if onScreen then
-
-                    UpdateTracer(PlayerTracers[player], Vector2.new(pos.X, pos.Y), Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y))
-
-                end
-
-            elseif PlayerTracers[player] then
-
-                PlayerTracers[player].Visible = false
-
-            end
-
-        end
-
+-- Função de converter CFrame para Viewport
+local function cframe_to_viewport(cframe)
+    local pos, onScreen = Camera:WorldToViewportPoint(cframe.Position)
+    return Vector2.new(pos.X, pos.Y), onScreen
+end
+
+-- Conexões do esqueleto padrão Roblox R15
+local skeleton_connections = {
+    {"Head", "UpperTorso"},
+    {"UpperTorso", "LowerTorso"},
+    {"UpperTorso", "LeftUpperArm"},
+    {"UpperTorso", "RightUpperArm"},
+    {"LeftUpperArm", "LeftLowerArm"},
+    {"RightUpperArm", "RightLowerArm"},
+    {"LeftLowerArm", "LeftHand"},
+    {"RightLowerArm", "RightHand"},
+    {"LowerTorso", "LeftUpperLeg"},
+    {"LowerTorso", "RightUpperLeg"},
+    {"LeftUpperLeg", "LeftLowerLeg"},
+    {"RightUpperLeg", "RightLowerLeg"},
+    {"LeftLowerLeg", "LeftFoot"},
+    {"RightLowerLeg", "RightFoot"}
+}
+
+-- Função de criar desenhos
+local function create_esp(player)
+    local drawings = {
+        BoxOutline = Drawing.new("Square"),
+        BoxInline = Drawing.new("Square"),
+        Text = Drawing.new("Text"),
+        Skeleton = {}
+    }
+
+    drawings.BoxOutline.Thickness = 3
+    drawings.BoxInline.Thickness = 1
+    drawings.Text.Size = 13
+    drawings.Text.Center = true
+    drawings.Text.Outline = true
+    drawings.Text.Font = 2
+
+    for i = 1, #skeleton_connections do
+        local line = Drawing.new("Line")
+        line.Thickness = 1
+        drawings.Skeleton[i] = line
     end
 
+    ESP.Drawings.Box[player] = drawings
+end
+
+-- Função de atualizar ESP
+local function update_esp(player)
+    local character = player.Character
+    local hrp = character and character:FindFirstChild("HumanoidRootPart")
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    local drawings = ESP.Drawings.Box[player]
+    if not character or not hrp or not humanoid or humanoid.Health <= 0 then return end
+
+    local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+    if not onScreen then return end
+
+    local size = Vector2.new(50, 100)
+    local topLeft = Vector2.new(pos.X - size.X/2, pos.Y - size.Y/2)
+
+    -- Box
+    drawings.BoxOutline.Position = topLeft - Vector2.new(1,1)
+    drawings.BoxOutline.Size = size + Vector2.new(2,2)
+    drawings.BoxOutline.Color = Color3.new(0,0,0)
+    drawings.BoxOutline.Visible = ESP.Enabled
+
+    drawings.BoxInline.Position = topLeft
+    drawings.BoxInline.Size = size
+    drawings.BoxInline.Color = Color3.new(1,0,0)
+    drawings.BoxInline.Visible = ESP.Enabled
+
+    -- Text
+    drawings.Text.Text = player.Name
+    drawings.Text.Position = Vector2.new(pos.X, topLeft.Y - 15)
+    drawings.Text.Color = Color3.new(1,1,1)
+    drawings.Text.Visible = ESP.TextEnabled
+
+    -- Skeleton
+    if ESP.SkeletonEnabled then
+        local cache = {}
+        for i, con in ipairs(skeleton_connections) do
+            local partA = character:FindFirstChild(con[1])
+            local partB = character:FindFirstChild(con[2])
+            if partA and partB then
+                local a = cache[partA] or Camera:WorldToViewportPoint(partA.Position)
+                local b = cache[partB] or Camera:WorldToViewportPoint(partB.Position)
+                cache[partA] = a
+                cache[partB] = b
+                local line = drawings.Skeleton[i]
+                line.From = Vector2.new(a.X, a.Y)
+                line.To = Vector2.new(b.X, b.Y)
+                line.Color = Color3.new(0,1,0)
+                line.Visible = true
+            end
+        end
+    end
+end
+
+-- Loop principal do ESP
+RunService.RenderStepped:Connect(function()
+    if not ESP.Enabled then return end
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            if not ESP.Drawings.Box[player] then
+                create_esp(player)
+            end
+            update_esp(player)
+        end
+    end
 end)
+
+-- Interface com Rayfield
+Rayfield:CreateWindow({
+    Name = "ESP Completo",
+    LoadingTitle = "ESP Loader",
+    LoadingSubtitle = "By Nicolas",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "ESP_Config"
+    },
+    Discord = {
+        Enabled = false
+    },
+    KeySystem = false
+})
+
+Rayfield:CreateTab({
+    Name = "ESP Geral",
+    Icon = "📦"
+}):CreateToggle({
+    Name = "Ativar Box ESP",
+    CurrentValue = false,
+    Callback = function(Value)
+        ESP.Enabled = Value
+    end
+}):CreateToggle({
+    Name = "Ativar Text ESP",
+    CurrentValue = true,
+    Callback = function(Value)
+        ESP.TextEnabled = Value
+    end
+}):CreateToggle({
+    Name = "Ativar Skeleton ESP",
+    CurrentValue = true,
+    Callback = function(Value)
+        ESP.SkeletonEnabled = Value
+    end
+})
