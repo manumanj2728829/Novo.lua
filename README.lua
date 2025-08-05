@@ -148,22 +148,30 @@ Rayfield:CreateWindow({
     KeySystem = false
 })
 
-Rayfield:CreateTab({
+-- Criando a aba e armazenando na variável 'ESP_Tab'
+local ESP_Tab = Window:CreateTab({
     Name = "ESP Geral",
     Icon = "📦"
-}):CreateToggle({
+})
+
+-- Criando os toggles dentro da aba
+ESP_Tab:CreateToggle({
     Name = "Ativar Box ESP",
     CurrentValue = false,
     Callback = function(Value)
         ESP.Enabled = Value
     end
-}):CreateToggle({
+})
+
+ESP_Tab:CreateToggle({
     Name = "Ativar Text ESP",
     CurrentValue = true,
     Callback = function(Value)
         ESP.TextEnabled = Value
     end
-}):CreateToggle({
+})
+
+ESP_Tab:CreateToggle({
     Name = "Ativar Skeleton ESP",
     CurrentValue = true,
     Callback = function(Value)
